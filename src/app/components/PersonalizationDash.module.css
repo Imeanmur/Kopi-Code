@@ -1,0 +1,222 @@
+.header {
+  margin-bottom: 3rem;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Recommendation Card */
+.recCard {
+  background: linear-gradient(135deg, rgba(26, 17, 9, 0.95) 0%, rgba(15, 10, 5, 0.98) 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.recCard::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(201, 144, 74, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.recCard:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.recTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.scoreCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scoreValue {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scoreLabel {
+  font-family: var(--font-accent);
+  font-size: 0.6rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.recTitle {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.recReason {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-style: italic;
+}
+
+.recTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Insights Panel */
+.insightsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.insightsTitle {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.insightsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.insightItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  transition: transform var(--transition-spring);
+}
+
+.insightItem:hover {
+  transform: translateX(4px);
+}
+
+.insightIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.insightContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.insightLabel {
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.insightValue {
+  font-family: var(--font-accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-brand-amber);
+  margin: 0;
+}
+
+.insightDesc {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* AI Banner */
+.aiBanner {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(201, 144, 74, 0.08) 0%, rgba(107, 58, 42, 0.06) 100%);
+  border: 1px solid rgba(201, 144, 74, 0.2);
+  border-radius: var(--radius-md);
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.aiIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.aiTitle {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-brand-amber);
+  margin: 0 0 0.375rem;
+}
+
+.aiText {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.aiText strong {
+  color: var(--color-brand-amber);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}

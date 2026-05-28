@@ -1,0 +1,275 @@
+.header {
+  margin-bottom: 3rem;
+}
+
+/* Impact Banner */
+.impactBanner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-bottom: 3rem;
+  overflow: hidden;
+}
+
+.impactItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  border-right: 1px solid var(--color-border);
+  text-align: center;
+  transition: background var(--transition-base);
+}
+
+.impactItem:last-child {
+  border-right: none;
+}
+
+.impactItem:hover {
+  background: rgba(201, 144, 74, 0.05);
+}
+
+.impactIcon {
+  font-size: 2rem;
+}
+
+.impactValue {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.impactLabel {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+/* Farmer Cards */
+.farmersGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.farmerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  animation: fadeInUp 0.6s ease both;
+  transition: transform var(--transition-spring);
+}
+
+.farmerCard:hover {
+  transform: translateY(-6px);
+}
+
+/* Avatar */
+.avatarWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+}
+
+.avatarEmoji {
+  font-size: 1.75rem;
+}
+
+.coffeeTypeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Farmer Info */
+.farmerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.farmerName {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.farmerLocation {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.farmerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.625rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.farmerQuote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  border-left: 2px solid var(--color-border-hover);
+  padding-left: 0.875rem;
+  margin: 0;
+}
+
+/* Process */
+.processSection {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.processTitle {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.processList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.processItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.processNumber {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: rgba(201, 144, 74, 0.12);
+  border: 1px solid rgba(201, 144, 74, 0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-brand-amber);
+  margin-top: 2px;
+}
+
+/* Support note */
+.supportNote {
+  display: flex;
+  gap: 1.25rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(0, 80, 0, 0.08) 0%, rgba(0, 60, 0, 0.04) 100%);
+  border: 1px solid rgba(0, 160, 0, 0.15);
+  border-radius: var(--radius-lg);
+}
+
+.supportIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.supportTitle {
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #5dbb6b;
+  margin: 0 0 0.5rem;
+}
+
+.supportText {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.supportText strong {
+  color: #5dbb6b;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .farmersGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .impactBanner {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .impactItem:nth-child(2) {
+    border-right: none;
+  }
+
+  .impactItem:nth-child(1),
+  .impactItem:nth-child(2) {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .farmersGrid {
+    grid-template-columns: 1fr;
+  }
+}

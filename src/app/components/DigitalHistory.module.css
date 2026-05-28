@@ -1,0 +1,217 @@
+.header {
+  margin-bottom: 3rem;
+}
+
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summaryCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  transition: transform var(--transition-spring);
+}
+
+.summaryCard:hover {
+  transform: translateY(-4px);
+}
+
+.summaryIcon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.summaryValue {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-brand-amber);
+  line-height: 1;
+}
+
+.summaryLabel {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Filter */
+.filterRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  font-family: var(--font-accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.filterBtn:hover {
+  border-color: var(--color-brand-amber);
+  color: var(--color-brand-amber);
+}
+
+.filterActive {
+  background: rgba(201, 144, 74, 0.12);
+  border-color: var(--color-brand-amber);
+  color: var(--color-brand-amber);
+}
+
+/* Table */
+.tableWrap {
+  overflow-x: auto;
+  padding: 0;
+  border-radius: var(--radius-lg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table thead tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table th {
+  font-family: var(--font-accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  padding: 1rem 1.25rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.row {
+  border-bottom: 1px solid rgba(201, 144, 74, 0.06);
+  animation: fadeInUp 0.5s ease both;
+  transition: background var(--transition-fast);
+}
+
+.row:hover {
+  background: rgba(201, 144, 74, 0.04);
+}
+
+.row td {
+  padding: 0.9rem 1.25rem;
+  vertical-align: middle;
+  color: var(--color-text-secondary);
+}
+
+.idBadge {
+  font-family: var(--font-accent);
+  font-size: 0.8rem;
+  background: rgba(201, 144, 74, 0.08);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+  color: var(--color-brand-amber);
+}
+
+.dateCell {
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.productCell {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.variantBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.variantLintong {
+  background: rgba(107, 58, 42, 0.25);
+  border: 1px solid rgba(212, 149, 106, 0.3);
+  color: var(--color-brand-lintong);
+}
+
+.variantSidikalang {
+  background: rgba(61, 31, 14, 0.4);
+  border: 1px solid rgba(193, 117, 53, 0.3);
+  color: var(--color-brand-sidikalang);
+}
+
+.roastCell {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.priceCell {
+  font-family: var(--font-accent);
+  font-weight: 600;
+  color: var(--color-brand-amber);
+  white-space: nowrap;
+}
+
+/* Total row */
+.totalRow td {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.totalLabel {
+  font-family: var(--font-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.totalValue {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-brand-amber);
+}
+
+.note {
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .summaryCards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .summaryCards {
+    grid-template-columns: 1fr;
+  }
+}

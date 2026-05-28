@@ -1,0 +1,233 @@
+.section {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+.bgAccent {
+  position: absolute;
+  top: -300px;
+  right: -300px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(107, 58, 42, 0.15) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.header {
+  margin-bottom: 2.5rem;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  font-family: var(--font-accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.tab:hover {
+  border-color: var(--color-brand-amber);
+  color: var(--color-brand-amber);
+}
+
+.tabActive {
+  background: var(--gradient-gold);
+  color: var(--color-bg-primary);
+  border-color: transparent;
+}
+
+/* Profile Grid */
+.profileGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+/* Info Panel */
+.infoPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.originCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.originBadge {
+  display: inline-flex;
+  padding: 0.4rem 0.875rem;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  font-family: var(--font-accent);
+  font-size: 0.78rem;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.profileName {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.profileTagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.profileDesc {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+/* Meta Grid */
+.metaGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+}
+
+.metaIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.metaLabel {
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+  line-height: 1;
+}
+
+.metaValue {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0.25rem 0 0;
+  line-height: 1.3;
+}
+
+/* Tasting Notes */
+.tastingNotes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tastingTitle {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.notesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Flavor Bars */
+.flavorBars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: var(--gradient-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.barsTitle {
+  font-family: var(--font-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.barItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: fadeInUp 0.6s ease both;
+}
+
+.barHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.barLabel {
+  font-family: var(--font-accent);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.barValue {
+  font-family: var(--font-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.barTrack {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px rgba(201, 144, 74, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .profileGrid {
+    grid-template-columns: 1fr;
+  }
+}
