@@ -25,7 +25,7 @@ export default function Navbar() {
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
       <div className={`container ${styles.inner}`}>
         {/* Logo */}
-        <a href="#" className={styles.logo} id="navbar-logo">
+        <a href="/home" className={styles.logo} id="navbar-logo">
           <span className={styles.logoIcon}>☕</span>
           <span className={styles.logoText}>
             Kopi<span className={styles.logoAccent}>Code</span>
@@ -44,8 +44,8 @@ export default function Navbar() {
         </ul>
 
         {/* CTA */}
-        <a href="#digital-history" className={`btn-primary ${styles.cta}`} id="navbar-cta">
-          Scan QR Code
+        <a href="/print-qr" className={`btn-primary ${styles.cta}`} id="navbar-cta">
+          🖨️ Cetak QR Code
         </a>
 
         {/* Mobile Hamburger */}
@@ -73,8 +73,8 @@ export default function Navbar() {
             {link.label}
           </a>
         ))}
-        <a href="#digital-history" className={`btn-primary ${styles.mobileCta}`}>
-          Scan QR Code
+        <a href="/print-qr" className={`btn-primary ${styles.mobileCta}`}>
+          🖨️ Cetak QR Code
         </a>
       </div>
     </nav>

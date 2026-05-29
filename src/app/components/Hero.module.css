@@ -240,39 +240,52 @@
   transform: translateY(-50%);
 }
 
-/* QR Box */
-.qrBox {
+/* Info Card (replaces QR box) */
+.infoCard {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
+  padding: 1.5rem;
   background: var(--gradient-glass);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(10px);
+  gap: 0;
+  min-width: 240px;
 }
 
-.qrGrid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
+.infoCardRow {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 0;
 }
 
-.qrCell {
-  width: 16px;
-  height: 16px;
-  background: var(--color-brand-amber);
-  border-radius: 2px;
-  transition: opacity 0.3s ease;
+.infoCardIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
-.qrLabel {
+.infoCardLabel {
   font-family: var(--font-accent);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.2rem;
+  line-height: 1;
+}
+
+.infoCardValue {
+  font-family: var(--font-accent);
+  font-size: 0.72rem;
   color: var(--color-text-muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  margin: 0;
+  line-height: 1;
+}
+
+.infoCardDivider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0;
 }
 
 /* Scroll indicator */

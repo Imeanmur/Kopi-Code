@@ -81,14 +81,31 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* QR Code visual */}
-          <div className={styles.qrBox}>
-            <div className={styles.qrGrid}>
-              {Array.from({ length: 25 }).map((_, i) => (
-                <div key={i} className={styles.qrCell} style={{ opacity: Math.random() > 0.4 ? 1 : 0.1 }} />
-              ))}
+          {/* Coffee Info Card */}
+          <div className={styles.infoCard}>
+            <div className={styles.infoCardRow}>
+              <span className={styles.infoCardIcon}>🌿</span>
+              <div>
+                <p className={styles.infoCardLabel}>Kopi Lintong</p>
+                <p className={styles.infoCardValue}>Tapanuli Utara · 1.200 mdpl</p>
+              </div>
             </div>
-            <p className={styles.qrLabel}>Scan untuk mulai</p>
+            <div className={styles.infoCardDivider} />
+            <div className={styles.infoCardRow}>
+              <span className={styles.infoCardIcon}>🏔️</span>
+              <div>
+                <p className={styles.infoCardLabel}>Kopi Sidikalang</p>
+                <p className={styles.infoCardValue}>Kabupaten Dairi · 1.600 mdpl</p>
+              </div>
+            </div>
+            <div className={styles.infoCardDivider} />
+            <div className={styles.infoCardRow}>
+              <span className={styles.infoCardIcon}>📱</span>
+              <div>
+                <p className={styles.infoCardLabel}>Scan QR Code</p>
+                <p className={styles.infoCardValue}>Cek hadiah & riwayat Anda</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

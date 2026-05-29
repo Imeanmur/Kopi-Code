@@ -358,8 +358,20 @@ a:hover {
   }
 }
 
+
 @media (max-width: 480px) {
   .container {
     padding: 0 var(--space-sm);
   }
 }
+
+/* ============================================================
+   GLOBAL PRINT STYLES
+   ============================================================ */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
