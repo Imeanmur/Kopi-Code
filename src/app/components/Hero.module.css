@@ -369,6 +369,17 @@
   }
 }
 
+@media (max-width: 768px) {
+  /* Hide visual column (coffee ring + infoCard) on mobile */
+  .visual {
+    display: none;
+  }
+
+  .inner {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   .stats {
     gap: 1rem;

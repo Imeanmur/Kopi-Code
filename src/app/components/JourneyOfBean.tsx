@@ -9,16 +9,16 @@ const LOCATIONS = {
     label: 'Lintong Nihuta',
     emoji: '🌿',
     color: '#d4956a',
-    origin: 'Tapanuli Utara — 300 km dari Medan',
+    origin: 'Tapanuli Utara — 264 km dari Medan',
     mapSrc:
-      'https://maps.google.com/maps?q=Lintong+Nihuta,+Tapanuli+Utara,+Sumatera+Utara&t=&z=12&ie=UTF8&iwloc=&output=embed',
+      'https://maps.google.com/maps?q=Kec.+Lintong+Nihuta,+Humbang+Hasundutan,+Sumatera+Utara&t=&z=12&ie=UTF8&iwloc=&output=embed',
   },
   sidikalang: {
     key: 'sidikalang',
     label: 'Sidikalang',
     emoji: '🏔️',
     color: '#c17535',
-    origin: 'Kabupaten Dairi — 250 km dari Medan',
+    origin: 'Kabupaten Dairi — 150 km dari Medan',
     mapSrc:
       'https://maps.google.com/maps?q=Sidikalang,+Kabupaten+Dairi,+Sumatera+Utara&t=&z=12&ie=UTF8&iwloc=&output=embed',
   },
