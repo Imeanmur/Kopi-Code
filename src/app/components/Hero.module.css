@@ -10,6 +10,18 @@
   padding-top: 80px;
 }
 
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 160px;
+  background: linear-gradient(to bottom, transparent 0%, var(--color-bg-primary) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
 /* Orbs */
 .orbLeft {
   position: absolute;

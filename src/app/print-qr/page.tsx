@@ -1,130 +1,184 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import styles from './PrintQR.module.css';
 
-// Ganti URL ini dengan URL Vercel setelah deploy
-const QR_URL = typeof window !== 'undefined'
-  ? window.location.origin
-  : 'https://kopicode.vercel.app';
+// ── Generate bottle IDs (client-only, called inside useEffect) ───
+function generateBottleIds(prefix: string, count: number): string[] {
+  return Array.from({ length: count }, (_, i) => {
+    const num = String(i + 1).padStart(3, '0');
+    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${prefix}-${num}-${rand}`;
+  });
+}
 
-const products = [
-  {
-    id: 'qr-lintong',
-    name: 'Kopi Lintong Premium',
-    variant: 'Lintong',
-    weight: '250g',
-    roast: 'Medium Roast',
-    emoji: '🌿',
-    color: '#d4956a',
-  },
-  {
-    id: 'qr-sidikalang',
-    name: 'Kopi Sidikalang Bold',
-    variant: 'Sidikalang',
-    weight: '250g',
-    roast: 'Dark Roast',
-    emoji: '🏔️',
-    color: '#c17535',
-  },
-  {
-    id: 'qr-lintong-light',
-    name: 'Kopi Lintong Single Origin',
-    variant: 'Lintong',
-    weight: '100g',
-    roast: 'Light Roast',
-    emoji: '🌿',
-    color: '#d4956a',
-  },
-  {
-    id: 'qr-sidikalang-espresso',
-    name: 'Kopi Sidikalang Espresso',
-    variant: 'Sidikalang',
-    weight: '200g',
-    roast: 'Dark Roast',
-    emoji: '🏔️',
-    color: '#c17535',
-  },
-];
+// ── QR Card subcomponent ─────────────────────────────────────────
+function QRCard({
+  url, label, sublabel, emoji, color, id, tag,
+}: {
+  url: string; label: string; sublabel: string;
+  emoji: string; color: string; id: string; tag?: string;
+}) {
+  return (
+    <div className={styles.qrCard} id={id}>
+      <div className={styles.cardHeader} style={{ borderColor: `${color}55` }}>
+        <span className={styles.cardEmoji}>{emoji}</span>
+        <div>
+          <p className={styles.cardBrand}>KopiCode</p>
+          <p className={styles.cardName}>{label}</p>
+        </div>
+        {tag && (
+          <span className={styles.cardTag} style={{ background: `${color}25`, color }}>
+            {tag}
+          </span>
+        )}
+      </div>
 
+      <div className={styles.qrWrapper}>
+        <QRCodeSVG value={url} size={150} bgColor="#ffffff" fgColor="#1a0d05" level="H" includeMargin />
+      </div>
+
+      <div className={styles.cardInfo}>
+        <p className={styles.cardScanLabel}>{sublabel}</p>
+        <p className={styles.cardUrl}>{url.length > 55 ? url.slice(0, 55) + '…' : url}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ────────────────────────────────────────────────────
 export default function PrintQRPage() {
+  const [lintongIds, setLintongIds] = useState<string[]>([]);
+  const [sidikalangIds, setSidikalangIds] = useState<string[]>([]);
+  const [baseUrl, setBaseUrl] = useState('https://kopicode.vercel.app');
+
+  useEffect(() => {
+    // Run client-side only to avoid Math.random() hydration mismatch
+    setLintongIds(generateBottleIds('BOT-LIN', 6));
+    setSidikalangIds(generateBottleIds('BOT-SID', 6));
+    setBaseUrl(window.location.origin);
+  }, []);
+
   const handlePrint = () => window.print();
 
   return (
     <div className={styles.page}>
-      {/* No-print header */}
+
+      {/* ── Header ── */}
       <div className={styles.header}>
         <div className={styles.headerInner}>
           <div className={styles.logo}>
             <span>☕</span>
-            <span>Kopi<strong>Code</strong> — QR Code untuk Kemasan</span>
+            <span>Kopi<strong>Code</strong> — Generator QR Code</span>
           </div>
           <div className={styles.headerActions}>
             <a href="/home" className={styles.backBtn}>← Kembali</a>
             <button className={styles.printBtn} onClick={handlePrint} id="print-qr-btn">
-              🖨️ Cetak QR Code
+              🖨️ Cetak Semua QR
             </button>
           </div>
         </div>
         <p className={styles.instructions}>
-          QR Code di bawah akan mengarahkan pelanggan ke halaman Reveal Hadiah KopiCode.
-          Klik <strong>"Cetak QR Code"</strong> untuk mencetak dan tempel pada kemasan produk Anda.
+          Halaman ini menghasilkan dua jenis QR Code. <strong>QR Botol</strong> memiliki ID unik
+          per botol — setiap QR hanya bisa di-scan sekali untuk undian. <strong>QR Banner</strong>{' '}
+          mengarahkan langsung ke landing page informasi kopi.
         </p>
       </div>
 
-      {/* Print grid */}
+      {/* ══ TIPE 1: QR BOTOL ══ */}
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionBadge} style={{ background: 'rgba(201,144,74,0.12)', color: '#e8a84d', borderColor: 'rgba(201,144,74,0.3)' }}>
+          🎁 Tipe 1 — QR Botol (Undian)
+        </div>
+        <h2 className={styles.sectionTitle}>QR Code untuk Kemasan Botol</h2>
+        <p className={styles.sectionDesc}>
+          Setiap QR code memiliki ID unik. Tempel satu per botol produk.
+          Pelanggan yang scan akan diarahkan ke halaman undian — <strong>hanya bisa scan sekali</strong>.
+        </p>
+      </div>
+
+      <div className={styles.subsectionLabel}>🌿 Kopi Lintong ({lintongIds.length || '…'} botol)</div>
       <div className={styles.grid}>
-        {products.map((product) => (
-          <div key={product.id} className={styles.qrCard} id={product.id}>
-            {/* Brand header */}
-            <div className={styles.cardHeader} style={{ borderColor: `${product.color}44` }}>
-              <span className={styles.cardEmoji}>{product.emoji}</span>
-              <div>
-                <p className={styles.cardBrand}>KopiCode</p>
-                <p className={styles.cardName}>{product.name}</p>
-              </div>
-            </div>
-
-            {/* QR Code */}
-            <div className={styles.qrWrapper}>
-              <QRCodeSVG
-                value={QR_URL}
-                size={160}
-                bgColor="#ffffff"
-                fgColor="#1a0d05"
-                level="H"
-                includeMargin={true}
-              />
-            </div>
-
-            {/* Product info */}
-            <div className={styles.cardInfo}>
-              <div className={styles.cardMeta}>
-                <span className={styles.metaChip}>📦 {product.weight}</span>
-                <span className={styles.metaChip}>🔥 {product.roast}</span>
-              </div>
-              <p className={styles.cardScanLabel}>📱 Scan untuk hadiah & info kopi</p>
-              <p className={styles.cardUrl}>{QR_URL}</p>
-            </div>
-
-            {/* Footer tagline */}
-            <div className={styles.cardFooter} style={{ background: `${product.color}18` }}>
-              <span>Premium Specialty Coffee · Sumatera Utara</span>
-            </div>
-          </div>
+        {lintongIds.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)', padding: '1rem', fontSize: '0.875rem' }}>⏳ Memuat…</p>
+        ) : lintongIds.map((qrId, i) => (
+          <QRCard
+            key={qrId}
+            id={`qr-bottle-lintong-${i + 1}`}
+            url={`${baseUrl}/?id=${qrId}`}
+            label="Kopi Lintong Premium"
+            sublabel="📱 Scan untuk cek keberuntungan!"
+            emoji="🌿"
+            color="#d4956a"
+            tag="Botol"
+          />
         ))}
       </div>
 
-      {/* Print instructions */}
+      <div className={styles.subsectionLabel}>🏔️ Kopi Sidikalang ({sidikalangIds.length || '…'} botol)</div>
+      <div className={styles.grid}>
+        {sidikalangIds.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)', padding: '1rem', fontSize: '0.875rem' }}>⏳ Memuat…</p>
+        ) : sidikalangIds.map((qrId, i) => (
+          <QRCard
+            key={qrId}
+            id={`qr-bottle-sidikalang-${i + 1}`}
+            url={`${baseUrl}/?id=${qrId}`}
+            label="Kopi Sidikalang Bold"
+            sublabel="📱 Scan untuk cek keberuntungan!"
+            emoji="🏔️"
+            color="#c17535"
+            tag="Botol"
+          />
+        ))}
+      </div>
+
+      {/* ══ TIPE 2: QR BANNER ══ */}
+      <div className={styles.sectionHeader} style={{ marginTop: '3rem' }}>
+        <div className={styles.sectionBadge} style={{ background: 'rgba(100,180,255,0.1)', color: '#60b0ff', borderColor: 'rgba(100,180,255,0.3)' }}>
+          ☕ Tipe 2 — QR Banner (Info Kopi)
+        </div>
+        <h2 className={styles.sectionTitle}>QR Code untuk Banner / Poster</h2>
+        <p className={styles.sectionDesc}>
+          QR di bawah mengarahkan langsung ke <strong>Landing Page KopiCode</strong> — menampilkan
+          sejarah dan profil rasa kopi. Cocok untuk banner, spanduk, atau poster promosi.
+        </p>
+      </div>
+
+      <div className={styles.grid} style={{ maxWidth: '500px', margin: '0 auto 2rem' }}>
+        <QRCard
+          id="qr-banner-home"
+          url={`${baseUrl}/home`}
+          label="Landing Page KopiCode"
+          sublabel="☕ Scan untuk sejarah & info kopi"
+          emoji="📖"
+          color="#60b0ff"
+          tag="Banner"
+        />
+        <QRCard
+          id="qr-banner-flavor"
+          url={`${baseUrl}/home#flavor-profile`}
+          label="Flavor Profile Kopi"
+          sublabel="☕ Scan untuk profil rasa kopi"
+          emoji="🍵"
+          color="#60b0ff"
+          tag="Banner"
+        />
+      </div>
+
+      {/* Tips */}
       <div className={styles.printTips}>
-        <h3>💡 Tips Mencetak</h3>
+        <h3>💡 Tips Cetak</h3>
         <ul>
-          <li>Gunakan kertas stiker atau kertas glossy untuk hasil terbaik</li>
-          <li>Pastikan ukuran kertas A4 dan orientasi Portrait</li>
-          <li>Pilih "Scale to fit" agar 4 QR code muat dalam 1 halaman</li>
-          <li>Setelah dicetak, uji scan QR code sebelum ditempel pada kemasan</li>
+          <li>Gunakan kertas stiker glossy untuk hasil cetak yang tahan lama</li>
+          <li>QR Botol: cetak 1 per botol — jangan duplikasi karena tiap ID unik</li>
+          <li>QR Banner: bisa diperbesar dan dicetak berkali-kali untuk poster/spanduk</li>
+          <li>Setelah cetak, uji scan QR sebelum ditempel pada produk</li>
+          <li>Refresh halaman untuk regenerate ID botol yang baru</li>
         </ul>
       </div>
+
     </div>
   );
 }

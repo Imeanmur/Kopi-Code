@@ -4,11 +4,8 @@ import { useState, useEffect } from 'react';
 import styles from './Navbar.module.css';
 
 const navLinks = [
-  { href: '#digital-history', label: 'Riwayat' },
   { href: '#flavor-profile', label: 'Flavor' },
   { href: '#journey', label: 'Sejarah' },
-  { href: '#petani', label: 'Petani' },
-  { href: '#loyalty', label: 'Loyalty' },
 ];
 
 export default function Navbar() {
@@ -43,11 +40,6 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* CTA */}
-        <a href="/print-qr" className={`btn-primary ${styles.cta}`} id="navbar-cta">
-          🖨️ Cetak QR Code
-        </a>
-
         {/* Mobile Hamburger */}
         <button
           className={styles.hamburger}
@@ -73,9 +65,6 @@ export default function Navbar() {
             {link.label}
           </a>
         ))}
-        <a href="/print-qr" className={`btn-primary ${styles.mobileCta}`}>
-          🖨️ Cetak QR Code
-        </a>
       </div>
     </nav>
   );

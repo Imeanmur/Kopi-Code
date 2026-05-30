@@ -11,10 +11,10 @@
 
 .inner {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr;
-  gap: 4rem;
-  padding-top: 4rem;
-  padding-bottom: 4rem;
+  grid-template-columns: 1.6fr 1fr 1.4fr;
+  gap: 3rem;
+  padding-top: 3.5rem;
+  padding-bottom: 2rem;
 }
 
 /* Brand */
@@ -136,6 +136,12 @@
   gap: 0.625rem;
   font-size: 0.875rem;
   color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+.contactItem:hover {
+  color: var(--color-brand-amber);
 }
 
 .certs {
@@ -173,6 +179,106 @@
   margin: 0;
 }
 
+/* Certs row */
+.certsRow {
+  display: flex;
+  gap: 0.75rem;
+  padding-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Email Form Column */
+.emailCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.emailDesc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+.emailForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.emailInput {
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.emailInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.emailInput:focus {
+  border-color: var(--color-brand-amber);
+}
+
+.emailTextarea {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  outline: none;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.emailTextarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.emailTextarea:focus {
+  border-color: var(--color-brand-amber);
+}
+
+.sendBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  background: var(--gradient-gold);
+  border: none;
+  border-radius: var(--radius-base);
+  color: var(--color-bg-primary);
+  font-family: var(--font-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sendBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.sendBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .inner {
@@ -181,6 +287,10 @@
   }
 
   .brand {
+    grid-column: 1 / -1;
+  }
+
+  .emailCol {
     grid-column: 1 / -1;
   }
 }

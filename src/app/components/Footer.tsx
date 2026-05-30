@@ -1,22 +1,26 @@
+'use client';
+
+import { useState } from 'react';
 import styles from './Footer.module.css';
 
-const socialLinks = [
-  { id: 'footer-instagram', icon: '📸', label: 'Instagram', href: '#' },
-  { id: 'footer-tiktok', icon: '🎵', label: 'TikTok', href: '#' },
-  { id: 'footer-whatsapp', icon: '💬', label: 'WhatsApp', href: '#' },
-  { id: 'footer-email', icon: '📧', label: 'Email', href: 'mailto:hello@kopicode.id' },
-];
-
 const navLinks = [
-  { label: 'Riwayat Pembelian', href: '#digital-history' },
   { label: 'Flavor Profile', href: '#flavor-profile' },
   { label: 'Sejarah Kopi', href: '#journey' },
-  { label: 'Profil Petani', href: '#petani' },
-  { label: 'Loyalty Program', href: '#loyalty' },
-  { label: 'Mengapa Digital', href: '#why-digital' },
 ];
 
 export default function Footer() {
+  const [name, setName] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleSendEmail = () => {
+    if (!message.trim()) return;
+    const subject = encodeURIComponent(`Pesan dari ${name || 'Pengunjung Website'} — KopiCode`);
+    const body = encodeURIComponent(
+      `Halo KopiCode,\n\n${message}\n\n---\nDikirim oleh: ${name || 'Pengunjung'}\nDari: Website KopiCode`
+    );
+    window.location.href = `mailto:kopicode05@gmail.com?subject=${subject}&body=${body}`;
+  };
+
   return (
     <footer className={styles.footer}>
       <div className={styles.topBorder} />
@@ -37,11 +41,15 @@ export default function Footer() {
 
           {/* Social Links */}
           <div className={styles.socials}>
-            {socialLinks.map((s) => (
-              <a key={s.id} href={s.href} id={s.id} className={styles.socialLink} aria-label={s.label}>
-                <span>{s.icon}</span>
-              </a>
-            ))}
+            <a href="mailto:kopicode05@gmail.com" className={styles.socialLink} aria-label="Gmail" title="Gmail">
+              <span>📧</span>
+            </a>
+            <a href="#" className={styles.socialLink} aria-label="Instagram" title="Instagram">
+              <span>📸</span>
+            </a>
+            <a href="https://wa.me/6285761655103" className={styles.socialLink} aria-label="WhatsApp" title="WhatsApp" target="_blank" rel="noopener noreferrer">
+              <span>💬</span>
+            </a>
           </div>
         </div>
 
@@ -55,32 +63,65 @@ export default function Footer() {
               </li>
             ))}
           </ul>
-        </div>
 
-        {/* Contact */}
-        <div className={styles.contactCol}>
-          <p className={styles.colTitle}>Kontak</p>
+          {/* Contact Info */}
+          <p className={styles.colTitle} style={{ marginTop: '1.5rem' }}>Kontak</p>
           <div className={styles.contactItems}>
             <div className={styles.contactItem}>
               <span>📍</span>
-              <span>Medan, Sumatera Utara, Indonesia</span>
+              <span>Medan, Sumatera Utara</span>
             </div>
-            <div className={styles.contactItem}>
+            <a href="mailto:kopicode05@gmail.com" className={styles.contactItem}>
               <span>📧</span>
-              <span>hello@kopicode.id</span>
-            </div>
-            <div className={styles.contactItem}>
+              <span>kopicode05@gmail.com</span>
+            </a>
+            <a href="https://wa.me/6285761655103" className={styles.contactItem}>
               <span>📱</span>
-              <span>+62 812 XXXX XXXX</span>
-            </div>
-          </div>
-
-          {/* Certificates */}
-          <div className={styles.certs}>
-            <span className="badge">🌿 Organic Certified</span>
-            <span className="badge">⭐ Specialty Grade</span>
+              <span>085761655103</span>
+            </a>
           </div>
         </div>
+
+        {/* Email Form */}
+        <div className={styles.emailCol}>
+          <p className={styles.colTitle}>Kirim Pesan</p>
+          <p className={styles.emailDesc}>
+            Punya pertanyaan tentang produk kami? Tulis pesan di sini dan kami akan menjawab secepatnya.
+          </p>
+          <div className={styles.emailForm}>
+            <input
+              id="footer-name-input"
+              type="text"
+              placeholder="Nama Anda"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={styles.emailInput}
+            />
+            <textarea
+              id="footer-message-input"
+              placeholder="Tulis pesan Anda di sini..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className={styles.emailTextarea}
+              rows={4}
+            />
+            <button
+              id="footer-send-btn"
+              className={styles.sendBtn}
+              onClick={handleSendEmail}
+              disabled={!message.trim()}
+            >
+              <span>📧</span> Kirim Email
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Certs */}
+      <div className={`container ${styles.certsRow}`}>
+        <span className="badge">🌿 Organic Certified</span>
+        <span className="badge">⭐ Specialty Grade</span>
+        <span className="badge">🤝 Fair Trade</span>
       </div>
 
       {/* Bottom Bar */}

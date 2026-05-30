@@ -1,64 +1,148 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './RevealGate.module.css';
 
-const LUCKY_CHANCE = 0.4; // 40% peluang menang
+type Phase = 'loading' | 'checking' | 'already_used' | 'idle' | 'spinning' | 'result' | 'error';
 
-function getResult(): boolean {
-  return Math.random() < LUCKY_CHANCE;
+interface ClaimResult {
+  winner: boolean;
+  claimCode: string | null;
 }
 
-type Phase = 'idle' | 'spinning' | 'result';
-
 export default function RevealGate() {
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [isLucky, setIsLucky] = useState(false);
+  const [phase, setPhase] = useState<Phase>('loading');
+  const [claimResult, setClaimResult] = useState<ClaimResult | null>(null);
   const [particles, setParticles] = useState<{ x: number; y: number; id: number }[]>([]);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const qrId = searchParams.get('id');
 
-  const handleReveal = () => {
+  // ── On mount: pre-check token status (fast UX feedback) ────────
+  useEffect(() => {
+    if (!qrId) {
+      // No token → demo mode
+      setPhase('idle');
+      return;
+    }
+
+    setPhase('checking');
+
+    // Quick local cache check first (avoids network round-trip on same device)
+    try {
+      const localUsed: string[] = JSON.parse(
+        localStorage.getItem('kopicode_used_ids') || '[]'
+      );
+      if (localUsed.includes(qrId)) {
+        setPhase('already_used');
+        return;
+      }
+    } catch { /* ignore */ }
+
+    // Server-side check (authoritative)
+    fetch(`/api/claim?id=${encodeURIComponent(qrId)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.status === 'already_claimed') {
+          // Also cache locally for instant future checks
+          cacheUsedLocally(qrId);
+          setPhase('already_used');
+        } else {
+          setPhase('idle');
+        }
+      })
+      .catch(() => {
+        // If server check fails, fall through to idle (API call on reveal will confirm)
+        setPhase('idle');
+      });
+  }, [qrId]);
+
+  // ── Persist used token in localStorage (local UX speed) ────────
+  const cacheUsedLocally = (id: string) => {
+    try {
+      const used: string[] = JSON.parse(localStorage.getItem('kopicode_used_ids') || '[]');
+      if (!used.includes(id)) {
+        used.push(id);
+        localStorage.setItem('kopicode_used_ids', JSON.stringify(used));
+      }
+    } catch { /* ignore */ }
+  };
+
+  // ── Handle Reveal button press ──────────────────────────────────
+  const handleReveal = async () => {
     if (phase !== 'idle') return;
     setPhase('spinning');
 
-    // Setelah animasi spin (2.5s), tampilkan hasil
-    setTimeout(() => {
-      const result = getResult();
-      setIsLucky(result);
+    // For demo mode (no qrId), simulate result client-side
+    if (!qrId) {
+      setTimeout(() => {
+        const winner = Math.random() < 0.4;
+        setClaimResult({
+          winner,
+          claimCode: winner ? `KPC-WIN-${Math.floor(100000 + Math.random() * 900000)}` : null,
+        });
+        setPhase('result');
+        if (winner) spawnParticles();
+      }, 2500);
+      return;
+    }
+
+    // Wait minimum spin duration for UX feel
+    const [claimRes] = await Promise.all([
+      fetch('/api/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: qrId }),
+      }).then((r) => r.json()),
+      new Promise((res) => setTimeout(res, 2500)),
+    ]);
+
+    if (claimRes.status === 'already_claimed') {
+      cacheUsedLocally(qrId);
+      setPhase('already_used');
+      return;
+    }
+
+    if (claimRes.status === 'claimed') {
+      cacheUsedLocally(qrId);
+      setClaimResult({ winner: claimRes.winner, claimCode: claimRes.claimCode ?? null });
       setPhase('result');
+      if (claimRes.winner) spawnParticles();
+      return;
+    }
 
-      if (result) {
-        // Spawn confetti particles
-        const newParticles = Array.from({ length: 30 }, (_, i) => ({
-          id: i,
-          x: Math.random() * 100,
-          y: Math.random() * 100,
-        }));
-        setParticles(newParticles);
-      }
-    }, 2500);
+    // Unexpected error
+    setPhase('error');
   };
 
-  const handleContinue = () => {
-    router.push('/home');
+  const spawnParticles = () => {
+    setParticles(
+      Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+      }))
+    );
   };
 
+  const handleContinue = () => router.push('/home');
+
+  // ── Render ──────────────────────────────────────────────────────
   return (
     <section className={styles.gate}>
-      {/* Background orbs */}
       <div className={styles.orbCenter} />
       <div className={styles.orbLeft} />
       <div className={styles.orbRight} />
 
-      {/* Particles (lucky only) */}
-      {isLucky && phase === 'result' && particles.map((p) => (
-        <span
-          key={p.id}
-          className={styles.confetti}
-          style={{ left: `${p.x}%`, top: `${p.y}%`, animationDelay: `${p.id * 0.05}s` } as React.CSSProperties}
-        />
-      ))}
+      {claimResult?.winner && phase === 'result' &&
+        particles.map((p) => (
+          <span
+            key={p.id}
+            className={styles.confetti}
+            style={{ left: `${p.x}%`, top: `${p.y}%`, animationDelay: `${p.id * 0.05}s` } as React.CSSProperties}
+          />
+        ))}
 
       <div className={styles.inner}>
         {/* Brand */}
@@ -69,11 +153,58 @@ export default function RevealGate() {
           </span>
         </div>
 
-        {/* === IDLE PHASE === */}
+        {/* ── LOADING / CHECKING ── */}
+        {(phase === 'loading' || phase === 'checking') && (
+          <div className={styles.spinningContent}>
+            <div className={styles.spinnerRing}>
+              <div className={styles.spinnerOuter}>
+                <div className={styles.spinnerInner}>
+                  <span className={styles.spinnerEmoji}>☕</span>
+                </div>
+              </div>
+            </div>
+            <p className={styles.spinningText}>
+              {phase === 'checking' ? 'Memverifikasi token…' : 'Memuat…'}
+            </p>
+          </div>
+        )}
+
+        {/* ── ALREADY USED ── */}
+        {phase === 'already_used' && (
+          <div className={`${styles.resultContent} ${styles.resultUnlucky}`}>
+            <div className={styles.resultIconWrap}>
+              <div className={styles.unluckyIcon}>🔒</div>
+            </div>
+            <div className={`badge ${styles.unluckyBadge}`}>
+              ⚠️ Token Sudah Digunakan
+            </div>
+            <h2 className={styles.resultTitle}>
+              QR Code Ini Sudah <br />
+              <span className={styles.unluckyAccent}>Pernah Di-scan Sebelumnya</span>
+            </h2>
+            <p className={styles.resultDesc}>
+              Setiap QR Code pada kemasan KopiCode hanya dapat digunakan{' '}
+              <strong>satu kali</strong> — token ini sudah diklaim. Beli produk KopiCode
+              baru untuk mendapatkan kesempatan undian berikutnya!
+            </p>
+            {qrId && (
+              <p className={styles.chanceNote} style={{ marginTop: '0.5rem' }}>
+                Token: <code style={{ fontSize: '0.75rem', opacity: 0.6 }}>{qrId}</code>
+              </p>
+            )}
+            <div className={styles.resultActions}>
+              <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-used">
+                <span>☕</span> Lihat Info Kopi
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── IDLE ── */}
         {phase === 'idle' && (
           <div className={styles.idleContent}>
             <div className={`badge ${styles.topBadge}`}>
-              <span>🎁</span> Smart Loyalty Program
+              <span>🎁</span> Mystery Box KopiCode
             </div>
             <h1 className={styles.mainTitle}>
               Apakah Anda <br />
@@ -84,7 +215,7 @@ export default function RevealGate() {
               mengungkap kejutan spesial yang mungkin menanti Anda. 🤞
             </p>
 
-            {/* Mystery Box visual */}
+            {/* Mystery Box */}
             <div className={styles.boxWrapper}>
               <div className={`${styles.mysteryBox} animate-float`}>
                 <div className={styles.boxLid}>
@@ -97,23 +228,21 @@ export default function RevealGate() {
               </div>
             </div>
 
-            <button
-              className={styles.revealBtn}
-              onClick={handleReveal}
-              id="reveal-button"
-            >
+            <button className={styles.revealBtn} onClick={handleReveal} id="reveal-button">
               <span className={styles.revealBtnIcon}>✨</span>
               Reveal Sekarang!
               <span className={styles.revealBtnShimmer} />
             </button>
 
             <p className={styles.chanceNote}>
-              Setiap scan QR memiliki peluang mendapatkan Mystery Box eksklusif
+              {qrId
+                ? `Token: ${qrId.slice(0, 16)}… · Berlaku sekali per kemasan`
+                : 'Setiap kemasan KopiCode memiliki peluang mendapatkan Mystery Box'}
             </p>
           </div>
         )}
 
-        {/* === SPINNING PHASE === */}
+        {/* ── SPINNING ── */}
         {phase === 'spinning' && (
           <div className={styles.spinningContent}>
             <div className={styles.spinnerRing}>
@@ -130,13 +259,11 @@ export default function RevealGate() {
           </div>
         )}
 
-        {/* === RESULT PHASE === */}
-        {phase === 'result' && (
-          <div className={`${styles.resultContent} ${isLucky ? styles.resultLucky : styles.resultUnlucky}`}>
-
-            {isLucky ? (
+        {/* ── RESULT ── */}
+        {phase === 'result' && claimResult && (
+          <div className={`${styles.resultContent} ${claimResult.winner ? styles.resultLucky : styles.resultUnlucky}`}>
+            {claimResult.winner ? (
               <>
-                {/* LUCKY */}
                 <div className={styles.resultIconWrap}>
                   <div className={styles.luckyIcon}>🎉</div>
                   <div className={styles.luckyRing} />
@@ -154,17 +281,16 @@ export default function RevealGate() {
                 </p>
                 <div className={styles.claimCode}>
                   <span className={styles.claimLabel}>Kode Klaim</span>
-                  <span className={styles.claimNum}>KPC-WIN-{Math.floor(1000 + Math.random() * 9000)}</span>
+                  <span className={styles.claimNum}>{claimResult.claimCode}</span>
                 </div>
                 <div className={styles.resultActions}>
-                  <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-to-landing">
-                    <span>☕</span> Lihat Landing Page
+                  <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-lucky">
+                    <span>☕</span> Lihat Info Kopi
                   </button>
                 </div>
               </>
             ) : (
               <>
-                {/* UNLUCKY */}
                 <div className={styles.resultIconWrap}>
                   <div className={styles.unluckyIcon}>☕</div>
                 </div>
@@ -177,23 +303,33 @@ export default function RevealGate() {
                 </h2>
                 <p className={styles.resultDesc}>
                   Setiap pembelian KopiCode berikutnya memberikan peluang baru!
-                  Kumpulkan <strong>8 scan total</strong> untuk otomatis mendapatkan
-                  Mystery Box eksklusif kami. Anda sudah di langkah yang benar! 💪
+                  Terima kasih sudah menjadi pelanggan setia KopiCode. 💪
                 </p>
-                <div className={styles.progressHint}>
-                  <span>Progress Loyalty Anda:</span>
-                  <div className={styles.progressMini}>
-                    <div className={styles.progressMiniFill} style={{ width: '62.5%' }} />
-                  </div>
-                  <span className={styles.progressNum}>5 / 8 scan</span>
-                </div>
                 <div className={styles.resultActions}>
-                  <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-to-landing-unlucky">
-                    <span>☕</span> Lihat Landing Page
+                  <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-unlucky">
+                    <span>☕</span> Lihat Info Kopi
                   </button>
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* ── ERROR ── */}
+        {phase === 'error' && (
+          <div className={`${styles.resultContent} ${styles.resultUnlucky}`}>
+            <div className={styles.resultIconWrap}>
+              <div className={styles.unluckyIcon}>⚠️</div>
+            </div>
+            <h2 className={styles.resultTitle}>Terjadi Kesalahan</h2>
+            <p className={styles.resultDesc}>
+              Gagal menghubungi server. Pastikan koneksi internet Anda aktif, lalu coba lagi.
+            </p>
+            <div className={styles.resultActions}>
+              <button className={`btn-primary ${styles.continueBtn}`} onClick={() => setPhase('idle')} id="retry-button">
+                🔄 Coba Lagi
+              </button>
+            </div>
           </div>
         )}
       </div>

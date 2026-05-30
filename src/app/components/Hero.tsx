@@ -2,13 +2,20 @@
 
 import styles from './Hero.module.css';
 
+// Pre-computed positions — avoids Math.random() hydration mismatch
+const PARTICLE_X = [14, 27, 83, 61, 42, 95, 7, 53, 76, 31, 68, 19, 88, 45, 72, 36, 91, 24, 57, 80];
+
 export default function Hero() {
   return (
     <section className={styles.hero} id="hero">
       {/* Animated background particles */}
       <div className={styles.particles}>
-        {Array.from({ length: 20 }).map((_, i) => (
-          <span key={i} className={styles.particle} style={{ '--delay': `${i * 0.4}s`, '--x': `${Math.random() * 100}%` } as React.CSSProperties} />
+        {PARTICLE_X.map((x, i) => (
+          <span
+            key={i}
+            className={styles.particle}
+            style={{ '--delay': `${i * 0.4}s`, '--x': `${x}%` } as React.CSSProperties}
+          />
         ))}
       </div>
 
@@ -35,11 +42,11 @@ export default function Hero() {
           </p>
 
           <div className={styles.actions} style={{ animationDelay: '0.5s' }}>
-            <a href="#digital-history" className="btn-primary" id="hero-cta-history">
-              <span>📋</span> Lihat Riwayat Saya
-            </a>
-            <a href="#journey" className="btn-secondary" id="hero-cta-journey">
+            <a href="#journey" className="btn-primary" id="hero-cta-journey">
               <span>🗺️</span> Sejarah Kopi
+            </a>
+            <a href="#flavor-profile" className="btn-secondary" id="hero-cta-flavor">
+              <span>☕</span> Profil Rasa
             </a>
           </div>
 
@@ -81,7 +88,6 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Coffee Info Card */}
           <div className={styles.infoCard}>
             <div className={styles.infoCardRow}>
               <span className={styles.infoCardIcon}>🌿</span>
@@ -96,14 +102,6 @@ export default function Hero() {
               <div>
                 <p className={styles.infoCardLabel}>Kopi Sidikalang</p>
                 <p className={styles.infoCardValue}>Kabupaten Dairi · 1.600 mdpl</p>
-              </div>
-            </div>
-            <div className={styles.infoCardDivider} />
-            <div className={styles.infoCardRow}>
-              <span className={styles.infoCardIcon}>📱</span>
-              <div>
-                <p className={styles.infoCardLabel}>Scan QR Code</p>
-                <p className={styles.infoCardValue}>Cek hadiah & riwayat Anda</p>
               </div>
             </div>
           </div>

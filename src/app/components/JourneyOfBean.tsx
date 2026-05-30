@@ -1,6 +1,30 @@
 'use client';
 
+import { useState } from 'react';
 import styles from './JourneyOfBean.module.css';
+
+const LOCATIONS = {
+  lintong: {
+    key: 'lintong',
+    label: 'Lintong Nihuta',
+    emoji: '🌿',
+    color: '#d4956a',
+    origin: 'Tapanuli Utara — 300 km dari Medan',
+    mapSrc:
+      'https://maps.google.com/maps?q=Lintong+Nihuta,+Tapanuli+Utara,+Sumatera+Utara&t=&z=12&ie=UTF8&iwloc=&output=embed',
+  },
+  sidikalang: {
+    key: 'sidikalang',
+    label: 'Sidikalang',
+    emoji: '🏔️',
+    color: '#c17535',
+    origin: 'Kabupaten Dairi — 250 km dari Medan',
+    mapSrc:
+      'https://maps.google.com/maps?q=Sidikalang,+Kabupaten+Dairi,+Sumatera+Utara&t=&z=12&ie=UTF8&iwloc=&output=embed',
+  },
+} as const;
+
+type LocationKey = keyof typeof LOCATIONS;
 
 const timelineLintong = [
   {
@@ -59,6 +83,9 @@ const timelineSidikalang = [
 ];
 
 export default function JourneyOfBean() {
+  const [activeLocation, setActiveLocation] = useState<LocationKey>('lintong');
+  const loc = LOCATIONS[activeLocation];
+
   return (
     <section className={`section ${styles.section}`} id="journey">
       <div className={styles.bgDecor} />
@@ -134,52 +161,62 @@ export default function JourneyOfBean() {
           </div>
         </div>
 
-        {/* Map Visual */}
+        {/* Interactive Map */}
         <div className={`${styles.mapCard} glass-card`} id="sumatra-map">
           <div className={styles.mapContent}>
-            <div>
+
+            {/* Left: info + location tabs */}
+            <div className={styles.mapInfo}>
               <p className="section-label">🗺️ Peta Asal</p>
               <h3 className={styles.mapTitle}>Sumatera Utara — Tanah Kopi Terbaik</h3>
               <p className={styles.mapDesc}>
-                Kedua kopi ini berasal dari dataran tinggi Sumatera Utara yang subur, dikelilingi
-                oleh pegunungan vulkanik, hutan tropis, dan Danau Toba — salah satu danau vulkanik
-                terbesar di dunia yang memberikan iklim mikro sempurna untuk pertumbuhan kopi arabika
-                terbaik.
+                Pilih asal kopi untuk melihat lokasinya langsung di peta. Kedua daerah ini
+                dikelilingi pegunungan vulkanik dan Danau Toba yang menciptakan iklim mikro
+                sempurna untuk arabika terbaik.
               </p>
-              <div className={styles.mapPoints}>
-                <div className={styles.mapPoint}>
-                  <span style={{ color: '#d4956a' }}>🌿</span>
-                  <div>
-                    <strong style={{ color: '#d4956a' }}>Lintong Nihuta</strong>
-                    <p>Tapanuli Utara — 300 km dari Medan</p>
-                  </div>
-                </div>
-                <div className={styles.mapPoint}>
-                  <span style={{ color: '#c17535' }}>🏔️</span>
-                  <div>
-                    <strong style={{ color: '#c17535' }}>Sidikalang</strong>
-                    <p>Kabupaten Dairi — 250 km dari Medan</p>
-                  </div>
-                </div>
+
+              {/* Location Tabs */}
+              <div className={styles.locationTabs}>
+                {(Object.values(LOCATIONS) as typeof LOCATIONS[LocationKey][]).map((l) => (
+                  <button
+                    key={l.key}
+                    className={`${styles.locationTab} ${activeLocation === l.key ? styles.locationTabActive : ''}`}
+                    style={
+                      activeLocation === l.key
+                        ? { borderColor: l.color, background: `${l.color}18`, color: l.color }
+                        : {}
+                    }
+                    onClick={() => setActiveLocation(l.key as LocationKey)}
+                    id={`map-tab-${l.key}`}
+                  >
+                    <span>{l.emoji}</span>
+                    <div>
+                      <p className={styles.locationTabName}>{l.label}</p>
+                      <p className={styles.locationTabOrigin}>{l.origin}</p>
+                    </div>
+                    {activeLocation === l.key && (
+                      <span className={styles.locationTabDot} style={{ background: l.color }} />
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className={styles.mapVisual}>
-              <div className={styles.mapSVG}>
-                {/* Stylized Sumatra representation */}
-                <div className={styles.island}>
-                  <span className={styles.islandLabel}>SUMATERA UTARA</span>
-                  <div className={styles.pinLintong}>
-                    <div className={styles.pin} style={{ background: '#d4956a' }} />
-                    <span>Lintong</span>
-                  </div>
-                  <div className={styles.pinSidikalang}>
-                    <div className={styles.pin} style={{ background: '#c17535' }} />
-                    <span>Sidikalang</span>
-                  </div>
-                  <div className={styles.lake}>🌊 Danau Toba</div>
-                </div>
-              </div>
+
+            {/* Right: Google Maps iframe */}
+            <div className={styles.mapEmbed}>
+              <iframe
+                key={loc.mapSrc}
+                title={`Peta ${loc.label}`}
+                src={loc.mapSrc}
+                width="100%"
+                height="100%"
+                style={{ border: 0, borderRadius: '12px', minHeight: '320px' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
+
           </div>
         </div>
       </div>

@@ -1,7 +1,18 @@
 .section {
   position: relative;
   overflow: hidden;
-  background: var(--color-bg-secondary);
+  background: transparent;
+}
+
+/* Smooth top/bottom gradient blends */
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 100px;
+  background: linear-gradient(to bottom, var(--color-bg-primary), transparent);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .bgAccent {
