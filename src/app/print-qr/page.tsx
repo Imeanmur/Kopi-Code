@@ -55,8 +55,8 @@ export default function PrintQRPage() {
 
   useEffect(() => {
     // Run client-side only to avoid Math.random() hydration mismatch
-    setLintongIds(generateBottleIds('BOT-LIN', 6));
-    setSidikalangIds(generateBottleIds('BOT-SID', 6));
+    setLintongIds(generateBottleIds('BOT-LIN', 15));
+    setSidikalangIds(generateBottleIds('BOT-SID', 15));
     setBaseUrl(window.location.origin);
   }, []);
 

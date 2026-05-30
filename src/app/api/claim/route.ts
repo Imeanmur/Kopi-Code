@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getRedis, claimKey } from '@/lib/redis';
 
-// ── Server-side token store ──────────────────────────────────────
-// Persists for the lifetime of this server instance.
-// For production with full persistence, replace with Vercel KV / Upstash Redis.
-const claimedTokens = new Map<string, { winner: boolean; claimCode: string; claimedAt: string }>();
-
+// ── Constants ────────────────────────────────────────────────────────────────
 const LUCKY_CHANCE = 0.4; // 40% win rate
 
+// ── Types ────────────────────────────────────────────────────────────────────
+interface ClaimRecord {
+  winner: boolean;
+  claimCode: string;
+  claimedAt: string;
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 function generateClaimCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = 'KPC-WIN-';
@@ -16,57 +21,87 @@ function generateClaimCode(): string {
   return code;
 }
 
+// ── POST /api/claim — klaim token & tentukan hasil undian ────────────────────
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { id } = body as { id?: string };
 
-    // ── Validate token format ────────────────────────────────────
+    // Validate token format
     if (!id || typeof id !== 'string' || id.trim() === '') {
       return NextResponse.json({ status: 'invalid', message: 'Token tidak valid.' }, { status: 400 });
     }
 
     const tokenId = id.trim();
+    const redis = getRedis();
+    const key = claimKey(tokenId);
 
-    // ── Check if already claimed ─────────────────────────────────
-    if (claimedTokens.has(tokenId)) {
+    // ── Atomic check-and-set using Redis SET NX ──────────────────────────────
+    // SET key value NX EX — only sets if key does NOT exist (atomic, race-safe)
+    const winner = Math.random() < LUCKY_CHANCE;
+    const claimCode = winner ? generateClaimCode() : '';
+    const claimedAt = new Date().toISOString();
+
+    const record: ClaimRecord = { winner, claimCode, claimedAt };
+
+    // NX = only set if not exists; returns null if key already exists
+    const setResult = await redis.set(key, JSON.stringify(record), {
+      nx: true,       // only set if NOT already claimed
+      ex: 60 * 60 * 24 * 365, // expire after 1 year (effectively permanent)
+    });
+
+    if (setResult === null) {
+      // Key already existed → already claimed
       return NextResponse.json({
         status: 'already_claimed',
         message: 'Token ini sudah pernah digunakan.',
       });
     }
 
-    // ── Determine result (server-side, tamper-proof) ─────────────
-    const winner = Math.random() < LUCKY_CHANCE;
-    const claimCode = winner ? generateClaimCode() : null;
-    const claimedAt = new Date().toISOString();
-
-    // ── Persist the claim ────────────────────────────────────────
-    claimedTokens.set(tokenId, { winner, claimCode: claimCode ?? '', claimedAt });
-
+    // New claim saved successfully
     return NextResponse.json({
       status: 'claimed',
       winner,
-      claimCode,
+      claimCode: winner ? claimCode : null,
       claimedAt,
     });
-  } catch {
-    return NextResponse.json({ status: 'error', message: 'Terjadi kesalahan server.' }, { status: 500 });
+
+  } catch (err) {
+    console.error('[/api/claim POST]', err);
+    return NextResponse.json(
+      { status: 'error', message: 'Terjadi kesalahan server.' },
+      { status: 500 }
+    );
   }
 }
 
-// Optional: GET endpoint to check status without claiming
+// ── GET /api/claim?id=... — cek status tanpa mengklaim ──────────────────────
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
 
-  if (!id) {
-    return NextResponse.json({ status: 'invalid' }, { status: 400 });
-  }
+    if (!id) {
+      return NextResponse.json({ status: 'invalid' }, { status: 400 });
+    }
 
-  const existing = claimedTokens.get(id.trim());
-  if (existing) {
-    return NextResponse.json({ status: 'already_claimed', claimedAt: existing.claimedAt });
+    const redis = getRedis();
+    const existing = await redis.get<string>(claimKey(id.trim()));
+
+    if (existing) {
+      const record: ClaimRecord = typeof existing === 'string'
+        ? JSON.parse(existing)
+        : existing as unknown as ClaimRecord;
+      return NextResponse.json({ status: 'already_claimed', claimedAt: record.claimedAt });
+    }
+
+    return NextResponse.json({ status: 'available' });
+
+  } catch (err) {
+    console.error('[/api/claim GET]', err);
+    return NextResponse.json(
+      { status: 'error', message: 'Terjadi kesalahan server.' },
+      { status: 500 }
+    );
   }
-  return NextResponse.json({ status: 'available' });
 }
