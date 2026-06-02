@@ -19,17 +19,17 @@ export default function RevealGate() {
   const searchParams = useSearchParams();
   const qrId = searchParams.get('id');
 
-  // ── On mount: pre-check token status (fast UX feedback) ────────
+  // ── On mount: cek apakah token sudah pernah digunakan di device ini ────────
   useEffect(() => {
     if (!qrId) {
-      // No token → demo mode
+      // Tidak ada token → mode demo
       setPhase('idle');
       return;
     }
 
     setPhase('checking');
 
-    // Quick local cache check first (avoids network round-trip on same device)
+    // Cek localStorage (pure client-side, tidak butuh backend)
     try {
       const localUsed: string[] = JSON.parse(
         localStorage.getItem('kopicode_used_ids') || '[]'
@@ -40,26 +40,11 @@ export default function RevealGate() {
       }
     } catch { /* ignore */ }
 
-    // Server-side check (authoritative)
-    fetch(`/api/claim?id=${encodeURIComponent(qrId)}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.status === 'already_claimed') {
-          // Also cache locally for instant future checks
-          cacheUsedLocally(qrId);
-          setPhase('already_used');
-        } else {
-          setPhase('idle');
-        }
-      })
-      .catch(() => {
-        // If server check fails, fall through to idle (API call on reveal will confirm)
-        setPhase('idle');
-      });
+    setPhase('idle');
   }, [qrId]);
 
-  // ── Persist used token in localStorage (local UX speed) ────────
-  const cacheUsedLocally = (id: string) => {
+  // ── Simpan token yang sudah digunakan ke localStorage ────────────
+  const markAsUsed = (id: string) => {
     try {
       const used: string[] = JSON.parse(localStorage.getItem('kopicode_used_ids') || '[]');
       if (!used.includes(id)) {
@@ -69,51 +54,61 @@ export default function RevealGate() {
     } catch { /* ignore */ }
   };
 
-  // ── Handle Reveal button press ──────────────────────────────────
-  const handleReveal = async () => {
+  // ── Generate klaim code deterministik dari token ID ───────────────
+  // Menggunakan hash sederhana agar hasil konsisten untuk token yang sama
+  const generateClaimCode = (id: string): string => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+    }
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'KPC-WIN-';
+    let h = hash;
+    for (let i = 0; i < 6; i++) {
+      code += chars[h % chars.length];
+      h = Math.floor(h / chars.length) || (hash + i * 7919);
+    }
+    return code;
+  };
+
+  // ── Tentukan apakah token menang (deterministik berdasarkan ID) ───
+  // 40% win rate, hasil konsisten untuk token yang sama
+  const isWinner = (id: string): boolean => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+    }
+    // Gunakan 2 byte terakhir untuk menentukan menang/kalah
+    return (hash % 100) < 40;
+  };
+
+  // ── Handle Reveal button press (pure client-side, no backend) ────
+  const handleReveal = () => {
     if (phase !== 'idle') return;
     setPhase('spinning');
 
-    // For demo mode (no qrId), simulate result client-side
-    if (!qrId) {
-      setTimeout(() => {
+    // Tunggu animasi spin selesai (2.5 detik), lalu tentukan hasil
+    setTimeout(() => {
+      if (!qrId) {
+        // Mode demo: hasil random
         const winner = Math.random() < 0.4;
         setClaimResult({
           winner,
-          claimCode: winner ? `KPC-WIN-${Math.floor(100000 + Math.random() * 900000)}` : null,
+          claimCode: winner ? generateClaimCode(`demo-${Date.now()}`) : null,
         });
         setPhase('result');
         if (winner) spawnParticles();
-      }, 2500);
-      return;
-    }
+        return;
+      }
 
-    // Wait minimum spin duration for UX feel
-    const [claimRes] = await Promise.all([
-      fetch('/api/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: qrId }),
-      }).then((r) => r.json()),
-      new Promise((res) => setTimeout(res, 2500)),
-    ]);
-
-    if (claimRes.status === 'already_claimed') {
-      cacheUsedLocally(qrId);
-      setPhase('already_used');
-      return;
-    }
-
-    if (claimRes.status === 'claimed') {
-      cacheUsedLocally(qrId);
-      setClaimResult({ winner: claimRes.winner, claimCode: claimRes.claimCode ?? null });
+      // Mode QR nyata: simpan ke localStorage, hasil deterministik dari ID token
+      markAsUsed(qrId);
+      const winner = isWinner(qrId);
+      const claimCode = winner ? generateClaimCode(qrId) : null;
+      setClaimResult({ winner, claimCode });
       setPhase('result');
-      if (claimRes.winner) spawnParticles();
-      return;
-    }
-
-    // Unexpected error
-    setPhase('error');
+      if (winner) spawnParticles();
+    }, 2500);
   };
 
   const spawnParticles = () => {
