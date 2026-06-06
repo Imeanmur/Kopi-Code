@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import styles from './PrintQR.module.css';
 
-// ── Generate bottle IDs (client-only, called inside useEffect) ───
+// ── Generate bottle IDs ───────────────────────────────────────────
 function generateBottleIds(prefix: string, count: number): string[] {
   return Array.from({ length: count }, (_, i) => {
     const num = String(i + 1).padStart(3, '0');
@@ -13,26 +13,53 @@ function generateBottleIds(prefix: string, count: number): string[] {
   });
 }
 
-// ── QR Card subcomponent ─────────────────────────────────────────
+// ── Acak 1 index dari 14 botol sebagai pemenang Humidifier ───────
+function pickHumidifierIndex(allIds: string[]): number {
+  const seed = allIds.join('');
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash % allIds.length;
+}
+
+// ── QR Card ──────────────────────────────────────────────────────
 function QRCard({
-  url, label, sublabel, emoji, color, id, tag,
+  url, label, sublabel, emoji, color, id, tag, isHumidifier,
 }: {
   url: string; label: string; sublabel: string;
   emoji: string; color: string; id: string; tag?: string;
+  isHumidifier?: boolean;
 }) {
   return (
-    <div className={styles.qrCard} id={id}>
-      <div className={styles.cardHeader} style={{ borderColor: `${color}55` }}>
-        <span className={styles.cardEmoji}>{emoji}</span>
+    <div
+      className={styles.qrCard}
+      id={id}
+      style={isHumidifier ? {
+        border: '3px solid #f0c040',
+        boxShadow: '0 0 28px rgba(240,192,64,0.45)',
+      } : {}}
+    >
+      <div
+        className={styles.cardHeader}
+        style={{
+          borderColor: isHumidifier ? '#f0c04088' : `${color}55`,
+          background: isHumidifier ? 'linear-gradient(135deg, #3a2800, #1a0d05)' : '#1a0d05',
+        }}
+      >
+        <span className={styles.cardEmoji}>{isHumidifier ? '💨' : emoji}</span>
         <div>
           <p className={styles.cardBrand}>KopiCode</p>
           <p className={styles.cardName}>{label}</p>
         </div>
-        {tag && (
-          <span className={styles.cardTag} style={{ background: `${color}25`, color }}>
-            {tag}
-          </span>
-        )}
+        <span
+          className={styles.cardTag}
+          style={isHumidifier
+            ? { background: 'rgba(240,192,64,0.25)', color: '#f0c040' }
+            : { background: `${color}25`, color }}
+        >
+          {isHumidifier ? '🥇 Humidifier' : (tag ?? 'Botol')}
+        </span>
       </div>
 
       <div className={styles.qrWrapper}>
@@ -40,27 +67,43 @@ function QRCard({
       </div>
 
       <div className={styles.cardInfo}>
-        <p className={styles.cardScanLabel}>{sublabel}</p>
+        <p className={styles.cardScanLabel}>
+          {isHumidifier ? '🥇 HADIAH UTAMA — Humidifier Diffuser!' : sublabel}
+        </p>
         <p className={styles.cardUrl}>{url.length > 55 ? url.slice(0, 55) + '…' : url}</p>
       </div>
     </div>
   );
 }
 
-// ── Main Page ────────────────────────────────────────────────────
+// ── Main Page ─────────────────────────────────────────────────────
 export default function PrintQRPage() {
+  // 9 Lintong + 5 Sidikalang = 14 total
+  // 1 Humidifier (acak) + 13 Gantungan Kunci
   const [lintongIds, setLintongIds] = useState<string[]>([]);
   const [sidikalangIds, setSidikalangIds] = useState<string[]>([]);
+  const [humidifierIndex, setHumidifierIndex] = useState<number>(-1);
   const [baseUrl, setBaseUrl] = useState('https://kopicode.vercel.app');
 
   useEffect(() => {
-    // Run client-side only to avoid Math.random() hydration mismatch
-    setLintongIds(generateBottleIds('BOT-LIN', 15));
-    setSidikalangIds(generateBottleIds('BOT-SID', 15));
+    const lin = generateBottleIds('BOT-LIN', 9);
+    const sid = generateBottleIds('BOT-SID', 5);
+    const allIds = [...lin, ...sid]; // 14 total
+    const idx = pickHumidifierIndex(allIds);
+
+    setLintongIds(lin);
+    setSidikalangIds(sid);
+    setHumidifierIndex(idx);
     setBaseUrl(window.location.origin);
   }, []);
 
   const handlePrint = () => window.print();
+
+  // Encode jenis hadiah ke parameter URL QR
+  const makeUrl = (qrId: string, isHumidifier: boolean) =>
+    `${baseUrl}/?id=${qrId}&prize=${isHumidifier ? 'hdiff' : 'gk'}`;
+
+  const allIds = [...lintongIds, ...sidikalangIds];
 
   return (
     <div className={styles.page}>
@@ -80,21 +123,45 @@ export default function PrintQRPage() {
           </div>
         </div>
         <p className={styles.instructions}>
-          Halaman ini menghasilkan dua jenis QR Code. <strong>QR Botol</strong> memiliki ID unik
-          per botol — setiap QR hanya bisa di-scan sekali untuk undian. <strong>QR Banner</strong>{' '}
-          mengarahkan langsung ke landing page informasi kopi.
+          Total <strong>14 QR Code</strong> — <strong>1</strong> pemenang{' '}
+          <strong style={{ color: '#f0c040' }}>Humidifier Diffuser</strong>{' '}
+          (acak, berbordir emas) dan <strong>13</strong> pemenang{' '}
+          <strong>Ganci Cup Coffee</strong>. Refresh halaman untuk acak ulang.
         </p>
       </div>
 
-      {/* ══ TIPE 1: QR BOTOL ══ */}
+      {/* ── Info Pemenang Humidifier ── */}
+      {humidifierIndex >= 0 && allIds.length === 14 && (
+        <div className={styles.sectionHeader}>
+          <div
+            className={styles.sectionBadge}
+            style={{ background: 'rgba(240,192,64,0.15)', color: '#f0c040', borderColor: 'rgba(240,192,64,0.4)' }}
+          >
+            🥇 Pemenang Hadiah Utama Sesi Ini
+          </div>
+          <h2 className={styles.sectionTitle}>Distribusi Hadiah</h2>
+          <p className={styles.sectionDesc}>
+            <strong style={{ color: '#f0c040' }}>Humidifier Diffuser</strong> jatuh pada botol ke-
+            <strong style={{ color: '#f0c040' }}>{humidifierIndex + 1}</strong> dari 14 —{' '}
+            {humidifierIndex < 9
+              ? `🌿 Kopi Lintong #${String(humidifierIndex + 1).padStart(2, '0')}`
+              : `🏔️ Kopi Sidikalang #${String(humidifierIndex - 8).padStart(2, '0')}`}.
+            Tandai dengan <strong style={{ color: '#f0c040' }}>border emas ✨</strong>.
+            13 botol lainnya mendapat <strong>Ganci Cup Coffee</strong>.
+          </p>
+        </div>
+      )}
+
+      {/* ══ QR BOTOL ══ */}
       <div className={styles.sectionHeader}>
         <div className={styles.sectionBadge} style={{ background: 'rgba(201,144,74,0.12)', color: '#e8a84d', borderColor: 'rgba(201,144,74,0.3)' }}>
-          🎁 Tipe 1 — QR Botol (Undian)
+          🎁 QR Botol — Undian Hadiah (14 Pemenang)
         </div>
         <h2 className={styles.sectionTitle}>QR Code untuk Kemasan Botol</h2>
         <p className={styles.sectionDesc}>
-          Setiap QR code memiliki ID unik. Tempel satu per botol produk.
-          Pelanggan yang scan akan diarahkan ke halaman undian — <strong>hanya bisa scan sekali</strong>.
+          Tempel satu QR per botol. QR dengan{' '}
+          <strong style={{ color: '#f0c040' }}>border emas 🥇</strong> = pemenang Humidifier Diffuser.
+          14 botol lainnya mendapat Ganci Cup Coffee.
         </p>
       </div>
 
@@ -102,80 +169,57 @@ export default function PrintQRPage() {
       <div className={styles.grid}>
         {lintongIds.length === 0 ? (
           <p style={{ color: 'var(--color-text-muted)', padding: '1rem', fontSize: '0.875rem' }}>⏳ Memuat…</p>
-        ) : lintongIds.map((qrId, i) => (
-          <QRCard
-            key={qrId}
-            id={`qr-bottle-lintong-${i + 1}`}
-            url={`${baseUrl}/?id=${qrId}`}
-            label="Kopi Lintong Premium"
-            sublabel="📱 Scan untuk cek keberuntungan!"
-            emoji="🌿"
-            color="#d4956a"
-            tag="Botol"
-          />
-        ))}
+        ) : lintongIds.map((qrId, i) => {
+          const globalIdx = i; // 0–8
+          const isHumidifier = globalIdx === humidifierIndex;
+          return (
+            <QRCard
+              key={qrId}
+              id={`qr-bottle-lintong-${i + 1}`}
+              url={makeUrl(qrId, isHumidifier)}
+              label="Kopi Lintong Premium"
+              sublabel="☕ Scan & Menangkan Ganci Cup Coffee!"
+              emoji="🌿"
+              color="#d4956a"
+              tag="Botol"
+              isHumidifier={isHumidifier}
+            />
+          );
+        })}
       </div>
 
       <div className={styles.subsectionLabel}>🏔️ Kopi Sidikalang ({sidikalangIds.length || '…'} botol)</div>
       <div className={styles.grid}>
         {sidikalangIds.length === 0 ? (
           <p style={{ color: 'var(--color-text-muted)', padding: '1rem', fontSize: '0.875rem' }}>⏳ Memuat…</p>
-        ) : sidikalangIds.map((qrId, i) => (
-          <QRCard
-            key={qrId}
-            id={`qr-bottle-sidikalang-${i + 1}`}
-            url={`${baseUrl}/?id=${qrId}`}
-            label="Kopi Sidikalang Bold"
-            sublabel="📱 Scan untuk cek keberuntungan!"
-            emoji="🏔️"
-            color="#c17535"
-            tag="Botol"
-          />
-        ))}
-      </div>
-
-      {/* ══ TIPE 2: QR BANNER ══ */}
-      <div className={styles.sectionHeader} style={{ marginTop: '3rem' }}>
-        <div className={styles.sectionBadge} style={{ background: 'rgba(100,180,255,0.1)', color: '#60b0ff', borderColor: 'rgba(100,180,255,0.3)' }}>
-          ☕ Tipe 2 — QR Banner (Info Kopi)
-        </div>
-        <h2 className={styles.sectionTitle}>QR Code untuk Banner / Poster</h2>
-        <p className={styles.sectionDesc}>
-          QR di bawah mengarahkan langsung ke <strong>Landing Page KopiCode</strong> — menampilkan
-          sejarah dan profil rasa kopi. Cocok untuk banner, spanduk, atau poster promosi.
-        </p>
-      </div>
-
-      <div className={styles.grid} style={{ maxWidth: '500px', margin: '0 auto 2rem' }}>
-        <QRCard
-          id="qr-banner-home"
-          url={`${baseUrl}/home`}
-          label="Landing Page KopiCode"
-          sublabel="☕ Scan untuk sejarah & info kopi"
-          emoji="📖"
-          color="#60b0ff"
-          tag="Banner"
-        />
-        <QRCard
-          id="qr-banner-flavor"
-          url={`${baseUrl}/home#flavor-profile`}
-          label="Flavor Profile Kopi"
-          sublabel="☕ Scan untuk profil rasa kopi"
-          emoji="🍵"
-          color="#60b0ff"
-          tag="Banner"
-        />
+        ) : sidikalangIds.map((qrId, i) => {
+          const globalIdx = 9 + i; // 9–13
+          const isHumidifier = globalIdx === humidifierIndex;
+          return (
+            <QRCard
+              key={qrId}
+              id={`qr-bottle-sidikalang-${i + 1}`}
+              url={makeUrl(qrId, isHumidifier)}
+              label="Kopi Sidikalang Bold"
+              sublabel="☕ Scan & Menangkan Ganci Cup Coffee!"
+              emoji="🏔️"
+              color="#c17535"
+              tag="Botol"
+              isHumidifier={isHumidifier}
+            />
+          );
+        })}
       </div>
 
       {/* Tips */}
       <div className={styles.printTips}>
-        <h3>💡 Tips Cetak</h3>
+        <h3>💡 Tips Cetak & Distribusi</h3>
         <ul>
-          <li>Gunakan kertas stiker glossy untuk hasil cetak yang tahan lama</li>
-          <li>QR Botol: cetak 1 per botol — jangan duplikasi karena tiap ID unik</li>
-          <li>QR Banner: bisa diperbesar dan dicetak berkali-kali untuk poster/spanduk</li>
+          <li>Total 14 QR: 1 Humidifier Diffuser + 13 Ganci Cup Coffee</li>
+          <li>QR dengan border emas = pemenang Humidifier — catat sebelum dicetak</li>
+          <li>Cetak 1 QR per botol — jangan duplikasi karena tiap ID unik</li>
           <li>Setelah cetak, uji scan QR sebelum ditempel pada produk</li>
-          <li>Refresh halaman untuk regenerate ID botol yang baru</li>
+          <li><strong>Refresh halaman</strong> untuk generate ulang ID botol dan acak pemenang baru</li>
         </ul>
       </div>
 

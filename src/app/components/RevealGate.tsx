@@ -5,10 +5,36 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './RevealGate.module.css';
 
 type Phase = 'loading' | 'checking' | 'already_used' | 'idle' | 'spinning' | 'result' | 'error';
+type PrizeType = 'humidifier' | 'gantungan_kunci';
 
 interface ClaimResult {
   winner: boolean;
   claimCode: string | null;
+  prizeType: PrizeType;
+}
+
+// ── Tentukan jenis hadiah dari parameter URL ──────────────────────
+// prize=hdiff → Humidifier Diffuser (hadiah utama)
+// prize=gk atau tidak ada → Gantungan Kunci
+function getPrizeType(prize: string | null): PrizeType {
+  if (prize === 'hdiff') return 'humidifier';
+  return 'gantungan_kunci';
+}
+
+// ── Generate klaim code deterministik dari token ID ───────────────
+function generateClaimCode(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'KPC-WIN-';
+  let h = hash;
+  for (let i = 0; i < 6; i++) {
+    code += chars[h % chars.length];
+    h = Math.floor(h / chars.length) || (hash + i * 7919);
+  }
+  return code;
 }
 
 export default function RevealGate() {
@@ -18,6 +44,7 @@ export default function RevealGate() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const qrId = searchParams.get('id');
+  const prizeParam = searchParams.get('prize'); // 'hdiff' | 'gk' | null
 
   // ── On mount: cek apakah token sudah pernah digunakan di device ini ────────
   useEffect(() => {
@@ -54,63 +81,6 @@ export default function RevealGate() {
     } catch { /* ignore */ }
   };
 
-  // ── Generate klaim code deterministik dari token ID ───────────────
-  // Menggunakan hash sederhana agar hasil konsisten untuk token yang sama
-  const generateClaimCode = (id: string): string => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-    }
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = 'KPC-WIN-';
-    let h = hash;
-    for (let i = 0; i < 6; i++) {
-      code += chars[h % chars.length];
-      h = Math.floor(h / chars.length) || (hash + i * 7919);
-    }
-    return code;
-  };
-
-  // ── Tentukan apakah token menang (deterministik berdasarkan ID) ───
-  // 40% win rate, hasil konsisten untuk token yang sama
-  const isWinner = (id: string): boolean => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-    }
-    // Gunakan 2 byte terakhir untuk menentukan menang/kalah
-    return (hash % 100) < 40;
-  };
-
-  // ── Handle Reveal button press (pure client-side, no backend) ────
-  const handleReveal = () => {
-    if (phase !== 'idle') return;
-    setPhase('spinning');
-
-    // Tunggu animasi spin selesai (2.5 detik), lalu tentukan hasil
-    setTimeout(() => {
-      if (!qrId) {
-        // Mode demo: hasil random
-        const winner = Math.random() < 0.4;
-        setClaimResult({
-          winner,
-          claimCode: winner ? generateClaimCode(`demo-${Date.now()}`) : null,
-        });
-        setPhase('result');
-        if (winner) spawnParticles();
-        return;
-      }
-
-      // Mode QR nyata: simpan ke localStorage, hasil deterministik dari ID token
-      markAsUsed(qrId);
-      const winner = isWinner(qrId);
-      const claimCode = winner ? generateClaimCode(qrId) : null;
-      setClaimResult({ winner, claimCode });
-      setPhase('result');
-      if (winner) spawnParticles();
-    }, 2500);
-  };
-
   const spawnParticles = () => {
     setParticles(
       Array.from({ length: 30 }, (_, i) => ({
@@ -119,6 +89,33 @@ export default function RevealGate() {
         y: Math.random() * 100,
       }))
     );
+  };
+
+  // ── Handle Reveal button press ────────────────────────────────────
+  // Semua scan ditetapkan sebagai BERUNTUNG
+  const handleReveal = () => {
+    if (phase !== 'idle') return;
+    setPhase('spinning');
+
+    setTimeout(() => {
+      if (!qrId) {
+        // Mode demo: selalu beruntung, gantungan kunci
+        const claimCode = generateClaimCode(`demo-${Date.now()}`);
+        setClaimResult({ winner: true, claimCode, prizeType: 'gantungan_kunci' });
+        setPhase('result');
+        spawnParticles();
+        return;
+      }
+
+      // Mode QR nyata: simpan ke localStorage, SELALU BERUNTUNG
+      // Jenis hadiah dibaca dari parameter 'prize' yang di-embed ke URL QR
+      markAsUsed(qrId);
+      const prizeType = getPrizeType(prizeParam);
+      const claimCode = generateClaimCode(qrId);
+      setClaimResult({ winner: true, claimCode, prizeType });
+      setPhase('result');
+      spawnParticles();
+    }, 2500);
   };
 
   const handleContinue = () => router.push('/home');
@@ -130,7 +127,7 @@ export default function RevealGate() {
       <div className={styles.orbLeft} />
       <div className={styles.orbRight} />
 
-      {claimResult?.winner && phase === 'result' &&
+      {phase === 'result' &&
         particles.map((p) => (
           <span
             key={p.id}
@@ -199,15 +196,15 @@ export default function RevealGate() {
         {phase === 'idle' && (
           <div className={styles.idleContent}>
             <div className={`badge ${styles.topBadge}`}>
-              <span>🎁</span> Mystery Box KopiCode
+              <span>🎁</span> Undian KopiCode
             </div>
             <h1 className={styles.mainTitle}>
-              Apakah Anda <br />
-              <span className="gold-text">Beruntung Hari Ini?</span>
+              Selamat! <br />
+              <span className="gold-text">Anda Beruntung! 🎉</span>
             </h1>
             <p className={styles.mainSubtitle}>
               Terima kasih sudah memilih KopiCode! Tekan tombol di bawah untuk
-              mengungkap kejutan spesial yang mungkin menanti Anda. 🤞
+              mengungkap hadiah spesial yang menanti Anda. 🤞
             </p>
 
             {/* Mystery Box */}
@@ -225,14 +222,14 @@ export default function RevealGate() {
 
             <button className={styles.revealBtn} onClick={handleReveal} id="reveal-button">
               <span className={styles.revealBtnIcon}>✨</span>
-              Reveal Sekarang!
+              Buka Hadiah Sekarang!
               <span className={styles.revealBtnShimmer} />
             </button>
 
             <p className={styles.chanceNote}>
               {qrId
                 ? `Token: ${qrId.slice(0, 16)}… · Berlaku sekali per kemasan`
-                : 'Setiap kemasan KopiCode memiliki peluang mendapatkan Mystery Box'}
+                : 'Setiap kemasan KopiCode dijamin mendapatkan hadiah'}
             </p>
           </div>
         )}
@@ -247,66 +244,91 @@ export default function RevealGate() {
                 </div>
               </div>
             </div>
-            <p className={styles.spinningText}>Mengundi keberuntungan Anda...</p>
+            <p className={styles.spinningText}>Membuka hadiah Anda...</p>
             <div className={styles.spinningDots}>
               <span /><span /><span />
             </div>
           </div>
         )}
 
-        {/* ── RESULT ── */}
+        {/* ── RESULT (selalu beruntung) ── */}
         {phase === 'result' && claimResult && (
-          <div className={`${styles.resultContent} ${claimResult.winner ? styles.resultLucky : styles.resultUnlucky}`}>
-            {claimResult.winner ? (
+          <div className={`${styles.resultContent} ${styles.resultLucky}`}>
+            <div className={styles.resultIconWrap}>
+              <div className={styles.luckyIcon}>🎉</div>
+              <div className={styles.luckyRing} />
+            </div>
+            <div className={`badge ${styles.luckyBadge}`}>
+              🏆 Selamat! Anda Beruntung!
+            </div>
+
+            {claimResult.prizeType === 'humidifier' ? (
               <>
-                <div className={styles.resultIconWrap}>
-                  <div className={styles.luckyIcon}>🎉</div>
-                  <div className={styles.luckyRing} />
-                </div>
-                <div className={`badge ${styles.luckyBadge}`}>
-                  🏆 Selamat! Anda Beruntung!
-                </div>
                 <h2 className={styles.resultTitle}>
                   Anda Memenangkan <br />
-                  <span className={styles.luckyGold}>Mystery Box! 🎁</span>
+                  <span className={styles.luckyGold}>Humidifier Diffuser! 💨</span>
                 </h2>
+
+                {/* Humidifier Image */}
+                <div className={styles.prizeImageWrap}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/humidifier-diffuser.jpg"
+                    alt="Humidifier Diffuser — Hadiah Utama KopiCode"
+                    width={220}
+                    height={220}
+                    className={styles.prizeImage}
+                    style={{ borderRadius: '16px', objectFit: 'cover', display: 'block' }}
+                  />
+                  <div className={styles.prizeMainBadge}>⭐ Hadiah Utama dari KopiCode</div>
+                </div>
+
                 <p className={styles.resultDesc}>
-                  Klaim hadiah Anda berupa <strong>gantungan kunci eksklusif KopiCode</strong> atau
-                  aksesori tech-lifestyle pilihan. Tunjukkan halaman ini ke kasir untuk klaim hadiah.
+                  Selamat! Anda memenangkan <strong>Humidifier Diffuser</strong> sebagai{' '}
+                  <strong>hadiah utama dari KopiCode</strong>! Tunjukkan halaman ini ke panitia
+                  untuk mengklaim hadiah Anda.
                 </p>
-                <div className={styles.claimCode}>
-                  <span className={styles.claimLabel}>Kode Klaim</span>
-                  <span className={styles.claimNum}>{claimResult.claimCode}</span>
-                </div>
-                <div className={styles.resultActions}>
-                  <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-lucky">
-                    <span>☕</span> Lihat Info Kopi
-                  </button>
-                </div>
               </>
             ) : (
               <>
-                <div className={styles.resultIconWrap}>
-                  <div className={styles.unluckyIcon}>☕</div>
-                </div>
-                <div className={`badge ${styles.unluckyBadge}`}>
-                  😊 Belum Beruntung Kali Ini
-                </div>
                 <h2 className={styles.resultTitle}>
-                  Jangan Menyerah! <br />
-                  <span className={styles.unluckyAccent}>Coba Lagi di Pembelian Berikutnya</span>
+                  Anda Memenangkan <br />
+                  <span className={styles.luckyGold}>Ganci Cup Coffee! ☕</span>
                 </h2>
-                <p className={styles.resultDesc}>
-                  Setiap pembelian KopiCode berikutnya memberikan peluang baru!
-                  Terima kasih sudah menjadi pelanggan setia KopiCode. 💪
-                </p>
-                <div className={styles.resultActions}>
-                  <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-unlucky">
-                    <span>☕</span> Lihat Info Kopi
-                  </button>
+
+                {/* Ganci Cup Coffee Image */}
+                <div className={styles.prizeImageWrap}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/gantungan-kunci-cup.jpg"
+                    alt="Ganci Cup Coffee — Hadiah KopiCode"
+                    width={220}
+                    height={220}
+                    className={styles.prizeImage}
+                    style={{ borderRadius: '16px', objectFit: 'cover', display: 'block' }}
+                  />
+                  <div className={styles.prizeGkBadge}>☕ Ganci Cup Coffee KopiCode</div>
                 </div>
+
+                <p className={styles.resultDesc}>
+                  Selamat! Anda mendapatkan{' '}
+                  <strong>Ganci Cup Coffee eksklusif KopiCode</strong> —
+                  gantungan kunci berbentuk cangkir kopi mini yang keren!
+                  Tunjukkan halaman ini ke panitia untuk mengklaim hadiah Anda.
+                </p>
               </>
             )}
+
+
+            <div className={styles.claimCode}>
+              <span className={styles.claimLabel}>Kode Klaim</span>
+              <span className={styles.claimNum}>{claimResult.claimCode}</span>
+            </div>
+            <div className={styles.resultActions}>
+              <button className={`btn-primary ${styles.continueBtn}`} onClick={handleContinue} id="continue-lucky">
+                <span>☕</span> Lihat Info Kopi
+              </button>
+            </div>
           </div>
         )}
 
