@@ -25,40 +25,33 @@ function pickHumidifierIndex(allIds: string[]): number {
 
 // ── QR Card ──────────────────────────────────────────────────────
 function QRCard({
-  url, label, sublabel, emoji, color, id, tag, isHumidifier,
+  url, label, emoji, color, id, tag,
 }: {
-  url: string; label: string; sublabel: string;
+  url: string; label: string;
   emoji: string; color: string; id: string; tag?: string;
-  isHumidifier?: boolean;
 }) {
   return (
     <div
       className={styles.qrCard}
       id={id}
-      style={isHumidifier ? {
-        border: '3px solid #f0c040',
-        boxShadow: '0 0 28px rgba(240,192,64,0.45)',
-      } : {}}
     >
       <div
         className={styles.cardHeader}
         style={{
-          borderColor: isHumidifier ? '#f0c04088' : `${color}55`,
-          background: isHumidifier ? 'linear-gradient(135deg, #3a2800, #1a0d05)' : '#1a0d05',
+          borderColor: `${color}55`,
+          background: '#1a0d05',
         }}
       >
-        <span className={styles.cardEmoji}>{isHumidifier ? '💨' : emoji}</span>
+        <span className={styles.cardEmoji}>{emoji}</span>
         <div>
           <p className={styles.cardBrand}>KopiCode</p>
           <p className={styles.cardName}>{label}</p>
         </div>
         <span
           className={styles.cardTag}
-          style={isHumidifier
-            ? { background: 'rgba(240,192,64,0.25)', color: '#f0c040' }
-            : { background: `${color}25`, color }}
+          style={{ background: `${color}25`, color }}
         >
-          {isHumidifier ? '🥇 Humidifier' : (tag ?? 'Botol')}
+          {tag ?? 'Botol'}
         </span>
       </div>
 
@@ -68,7 +61,7 @@ function QRCard({
 
       <div className={styles.cardInfo}>
         <p className={styles.cardScanLabel}>
-          {isHumidifier ? '🥇 HADIAH UTAMA — Humidifier Diffuser!' : sublabel}
+          ☕ Scan &amp; Menangkan Hadiahnya!
         </p>
         <p className={styles.cardUrl}>{url.length > 55 ? url.slice(0, 55) + '…' : url}</p>
       </div>
@@ -178,11 +171,9 @@ export default function PrintQRPage() {
               id={`qr-bottle-lintong-${i + 1}`}
               url={makeUrl(qrId, isHumidifier)}
               label="Kopi Lintong Premium"
-              sublabel="☕ Scan & Menangkan Ganci Cup Coffee!"
               emoji="🌿"
               color="#d4956a"
               tag="Botol"
-              isHumidifier={isHumidifier}
             />
           );
         })}
@@ -201,11 +192,9 @@ export default function PrintQRPage() {
               id={`qr-bottle-sidikalang-${i + 1}`}
               url={makeUrl(qrId, isHumidifier)}
               label="Kopi Sidikalang Bold"
-              sublabel="☕ Scan & Menangkan Ganci Cup Coffee!"
               emoji="🏔️"
               color="#c17535"
               tag="Botol"
-              isHumidifier={isHumidifier}
             />
           );
         })}
